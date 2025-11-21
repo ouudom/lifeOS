@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { ArrowLeft, LucideIcon, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-interface PageHeaderProps extends React.HTMLAttributes<HTMLHeadingElement> {
+interface ContentHeaderProps extends React.HTMLAttributes<HTMLHeadingElement> {
   title: string;
   btnText?: string;
   btnIcon?: LucideIcon;
@@ -15,7 +15,7 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLHeadingElement> {
 
 import { cn } from "@/lib/utils";
 
-export function PageHeader({
+export function ContentHeader({
   className,
   title,
   btnText = "New",
@@ -24,7 +24,7 @@ export function PageHeader({
   showBtn = false,
   showBackBtn = false,
   ...props
-}: PageHeaderProps) {
+}: ContentHeaderProps) {
   const router = useRouter();
 
   return (

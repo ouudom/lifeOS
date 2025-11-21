@@ -7,6 +7,8 @@ import {
   Computer,
   GalleryVerticalEnd,
   LayoutGrid,
+  MessageCircle,
+  MessageCircleCodeIcon,
   Settings2,
   Share2,
   Sparkles,
@@ -55,61 +57,61 @@ const navItems: NavGroup[] = [
     sidebarGroupTitle: "Platform",
     sidebarItems: [
       {
-        name: "Dashboard",
+        name: "Chat",
         url: "/",
-        icon: Computer,
+        icon: MessageCircleCodeIcon,
       },
 
     ]
   },
-  {
-    sidebarGroupTitle: "Content Engine",
-    sidebarItems: [
-      {
-        name: "Content",
-        url: "/content",
-        icon: Sparkles,
-      },
-      {
-        name: "Posts",
-        url: "/post",
-        icon: LayoutGrid,
-      },
-    ],
-  },
-  {
-    sidebarGroupTitle: "Settings",
-    sidebarItems: [
-      {
-        sidebarGroupTitle: "Settings",
-        url: "#",
-        icon: Settings2,
-        sidebarSubItems: [
-          {
-            name: "General",
-            url: "#",
-          },
-          {
-            name: "Team",
-            url: "#",
-          },
-          {
-            name: "Billing",
-            url: "#",
-          },
-          {
-            name: "Limits",
-            url: "#",
-          },
-        ],
-      },
-      {
-        name: "Platforms",
-        url: "/platforms",
-        icon: Share2,
-      },
-    ],
-  },
+  // {
+  //   sidebarGroupTitle: "Content Engine",
+  //   sidebarItems: [
+  //     {
+  //       name: "Content",
+  //       url: "/content",
+  //       icon: Sparkles,
+  //     },
+  //     {
+  //       name: "Posts",
+  //       url: "/post",
+  //       icon: LayoutGrid,
+  //     },
+  //   ],
+  // },
+  // {
+  //   sidebarGroupTitle: "Settings",
+  //   sidebarItems: [
+  //     {
+  //       sidebarGroupTitle: "Settings",
+  //       url: "#",
+  //       icon: Settings2,
+  //       sidebarSubItems: [
+  //         {
+  //           name: "General",
+  //           url: "#",
+  //         },
+  //         {
+  //           name: "Team",
+  //           url: "#",
+  //         },
+  //         {
+  //           name: "Billing",
+  //           url: "#",
+  //         },
+  //         {
+  //           name: "Limits",
+  //           url: "#",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       name: "Platforms",
+  //       url: "/platforms",
+  //       icon: Share2,
+  //     },
+  //   ],
+  // },
 
 ];
 
