@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot, User, Loader2, Plus, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -103,12 +103,12 @@ export function Chat() {
                                 <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                                     {message.content}
                                 </p>
-                                <span className="mt-1 block text-[10px] opacity-50">
+                                {/* <span className="mt-1 block text-[10px] opacity-50">
                                     {message.timestamp.toLocaleTimeString([], {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                     })}
-                                </span>
+                                </span> */}
                             </div>
 
                             {message.role === "user" && (
@@ -142,28 +142,27 @@ export function Chat() {
             {/* Input Form */}
             <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <form onSubmit={handleSubmit} className="mx-auto max-w-3xl p-4">
-                    <div className="relative flex items-end gap-2">
-                        <div className="relative flex-1">
-                            <Textarea
-                                ref={textareaRef}
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-                                className="min-h-[60px] max-h-[200px] resize-none rounded-2xl pr-12 shadow-sm"
-                                disabled={isLoading}
-                            />
-                        </div>
+                    <div className="flex items-center gap-3 rounded-full border bg-background px-6 py-3 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                        <input
+                            ref={textareaRef as any}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown as any}
+                            placeholder="Message"
+                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                            disabled={isLoading}
+                        />
+
                         <Button
                             type="submit"
                             size="icon"
                             disabled={!input.trim() || isLoading}
-                            className="h-[60px] w-[60px] shrink-0 rounded-2xl shadow-sm"
+                            className="h-10 w-10 shrink-0 rounded-full"
                         >
                             {isLoading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                                <Send className="h-5 w-5" />
+                                <Send className="h-4 w-4" />
                             )}
                         </Button>
                     </div>
