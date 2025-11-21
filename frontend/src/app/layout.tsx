@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LifeOS - Dashboard",
+  title: "LifeOS",
   description: "Your personal life operating system",
 };
 

@@ -49,15 +49,15 @@ function formatSegment(segment: string, index: number): string {
 
 /**
  * Generates breadcrumb items from a pathname
- * @param pathname - The current pathname (e.g., "/dashboard/journals/123")
+ * @param pathname - The current pathname (e.g., "/chat)
  * @returns Array of breadcrumb items with href and label
  */
 export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
     const segments = pathname.split("/").filter(Boolean);
 
-    // Default to dashboard if no segments
+    // Default to chat if no segments
     if (segments.length === 0) {
-        return [{ href: "/dashboard", label: "Dashboard" }];
+        return [{ href: "/", label: "Chat" }];
     }
 
     return segments.map((segment, index) => ({
