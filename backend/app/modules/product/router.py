@@ -27,7 +27,7 @@ async def create_product(
 @router.get("/", response_model=BaseResponse[List[ProductRead]])
 async def read_products(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 10,
     service: ProductService = Depends(get_service)
 ):
     products = await service.get_all(skip=skip, limit=limit)
