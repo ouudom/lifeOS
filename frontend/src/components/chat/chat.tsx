@@ -5,7 +5,7 @@ import { Send, Bot, User, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { chatService } from "@/api/services/chat.service";
+import { chatService, Message as ApiMessage } from "@/api/services/chat.service";
 import { ApiError } from "@/api/base/types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -19,25 +19,85 @@ interface Message {
 }
 
 export function Chat() {
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: "1",
-            role: "assistant",
-            content: "Hello! I'm your LifeOS AI assistant. How can I help you today?",
-            timestamp: new Date(),
-        },
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const scrollPositionRef = useRef<number>(0);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Fetch messages
+    const fetchMessages = async (pageNum: number) => {
+        if (isFetchingHistory) return;
+
+        try {
+            setIsFetchingHistory(true);
+            const response = await chatService.getMessages(pageNum, 6);
+
+            if (response.data) {
+                const newMessages: Message[] = response.data.map((msg: ApiMessage) => ({
+                    id: msg.id,
+                    role: msg.role,
+                    content: msg.content,
+                    timestamp: new Date(msg.created_at),
+                })).reverse(); // Backend returns newest first, we want oldest first for display
+
+                if (newMessages.length < 6) {
+                    setHasMore(false);
+                }
+
+                if (pageNum === 1) {
+                    setMessages(newMessages);
+                    // Scroll to bottom on initial load
+                    setTimeout(scrollToBottom, 100);
+                } else {
+                    // Prepend messages
+                    setMessages(prev => [...newMessages, ...prev]);
+                }
+
+                setPage(pageNum + 1);
+            }
+        } catch (error) {
+            console.error("Failed to fetch messages:", error);
+        } finally {
+            setIsFetchingHistory(false);
+        }
+    };
+
+    // Initial load
     useEffect(() => {
-        scrollToBottom();
+        fetchMessages(1);
+    }, []);
+
+    // Handle scroll for infinite loading
+    const handleScroll = () => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        if (container.scrollTop === 0 && hasMore && !isFetchingHistory) {
+            // Save current scroll height to restore position after loading
+            scrollPositionRef.current = container.scrollHeight;
+            fetchMessages(page);
+        }
+    };
+
+    // Restore scroll position after history load
+    useEffect(() => {
+        if (page > 2 && messagesContainerRef.current) {
+            const container = messagesContainerRef.current;
+            const newScrollHeight = container.scrollHeight;
+            const scrollDiff = newScrollHeight - scrollPositionRef.current;
+            container.scrollTop = scrollDiff;
+        }
     }, [messages]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -105,8 +165,17 @@ export function Chat() {
     return (
         <div className="flex h-full flex-col">
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto px-4 py-6">
+            <div
+                ref={messagesContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto px-4 py-6"
+            >
                 <div className="mx-auto max-w-3xl space-y-6">
+                    {isFetchingHistory && page > 1 && (
+                        <div className="flex justify-center py-4">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                    )}
                     {messages.map((message) => (
                         <div
                             key={message.id}
