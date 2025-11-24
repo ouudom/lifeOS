@@ -28,3 +28,15 @@ def add_exception_handlers(app: FastAPI):
                 errors=exc.errors()
             ).model_dump(),
         )
+
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=ErrorResponse(
+                status="error",
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message="Internal Server Error",
+                errors=[str(exc)]
+            ).model_dump(),
+        )
