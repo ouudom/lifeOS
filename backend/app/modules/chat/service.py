@@ -1,12 +1,11 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select, desc
 from typing import List, Tuple
-from app.modules.gemini.service import GeminiService
 from app.modules.chat.models import Message
-
 
 class ChatService:
     def __init__(self, session: AsyncSession):
+        from app.modules.gemini.service import GeminiService
         self.session = session
         self.gemini_service = GeminiService()
 
@@ -47,3 +46,19 @@ class ChatService:
         pagination_result = pagination_helper(messages, page, limit, total_count)
 
         return messages, pagination_result
+
+# --- CRUD Functions ---
+from typing import Optional
+
+async def save_message(db: AsyncSession, role: str, content: str, extra: Optional[dict] = None) -> Message:
+    message = Message(role=role, content=content, extra=extra)
+    db.add(message)
+    await db.commit()
+    await db.refresh(message)
+    return message
+
+async def get_last_messages(db: AsyncSession, limit: int = 20) -> List[Message]:
+    statement = select(Message).order_by(Message.created_at.desc()).limit(limit)
+    result = await db.exec(statement)
+    messages = result.all()
+    return list(reversed(messages))  # Return in chronological order
