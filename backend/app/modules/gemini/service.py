@@ -2,14 +2,13 @@ import os
 from datetime import date
 
 from fastapi import HTTPException, status
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, ToolMessage
 
 from app.core.config import settings
-from app.core.db import async_session
-from app.modules.chat import service as chat_service
+
 from .tools import (
     save_habits, save_journal, get_context, save_tomorrow_plan
 )
@@ -94,9 +93,6 @@ class GeminiService:
         """
         Process a message using the LangChain agent with tools.
         """
-        # Save user message
-        async with async_session() as session:
-            await chat_service.save_message(session, role="user", content=prompt)
 
         knowledge_context = self._load_knowledge()
         base_prompt = self._load_system_prompt()
@@ -120,9 +116,7 @@ class GeminiService:
             
             final_content = result["output"]
 
-            # Save assistant response
-            async with async_session() as session:
-                await chat_service.save_message(session, role="assistant", content=str(final_content))
+
                 
             return str(final_content)
 
