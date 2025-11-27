@@ -10,6 +10,8 @@ import { ApiError } from "@/api/base/types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+const MAX_MESSAGES = 10;
+
 interface Message {
     id: string;
     role: "user" | "assistant";
@@ -41,7 +43,7 @@ export function Chat() {
 
         try {
             setIsFetchingHistory(true);
-            const response = await chatService.getMessages(pageNum, 6);
+            const response = await chatService.getMessages(pageNum, MAX_MESSAGES);
 
             if (response.data) {
                 const newMessages: Message[] = response.data.map((msg: ApiMessage) => ({
@@ -51,7 +53,7 @@ export function Chat() {
                     timestamp: new Date(msg.created_at),
                 })).reverse(); // Backend returns newest first, we want oldest first for display
 
-                if (newMessages.length < 6) {
+                if (newMessages.length < MAX_MESSAGES) {
                     setHasMore(false);
                 }
 
@@ -114,6 +116,10 @@ export function Chat() {
         const userMessageContent = input.trim();
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
+        // Reset textarea height
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+        }
         setIsLoading(true);
 
         try {
@@ -155,7 +161,7 @@ export function Chat() {
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSubmit(e);
@@ -306,14 +312,20 @@ export function Chat() {
             {/* Input Form */}
             <div className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <form onSubmit={handleSubmit} className="mx-auto max-w-3xl p-4">
-                    <div className="flex items-center gap-3 rounded-full border bg-background px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                        <input
-                            ref={textareaRef as any}
+                    <div className="flex items-end gap-3 rounded-3xl border bg-background px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                        <textarea
+                            ref={textareaRef}
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={(e) => {
+                                setInput(e.target.value);
+                                // Auto-resize
+                                e.target.style.height = "auto";
+                                e.target.style.height = `${e.target.scrollHeight}px`;
+                            }}
                             onKeyDown={handleKeyDown as any}
                             placeholder="Message"
-                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                            rows={1}
+                            className="flex-1 max-h-48 min-h-[24px] resize-none bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground scrollbar-hide"
                             disabled={isLoading}
                         />
 
@@ -321,7 +333,7 @@ export function Chat() {
                             type="submit"
                             size="icon"
                             disabled={!input.trim() || isLoading}
-                            className="h-10 w-10 shrink-0 rounded-full"
+                            className="mb-0.5 h-8 w-8 shrink-0 rounded-full"
                         >
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
