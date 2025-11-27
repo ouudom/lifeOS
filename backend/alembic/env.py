@@ -45,7 +45,10 @@ def import_all_models(package_name: str):
 import_all_models("app.modules")
 
 # Explicitly import all models to ensure they're registered
-from app.modules.chat.models import Message  # noqa: F401
+from app.modules.habit.models import Habit, HabitEntry
+from app.modules.journal.models import DailyJournal
+from app.modules.plan.models import Plan
+from app.modules.chat.models import Message
 
 # Target metadata for autogeneration
 target_metadata = Base.metadata
