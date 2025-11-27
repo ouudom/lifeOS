@@ -126,3 +126,16 @@ async def save_tomorrow_plan(data: dict) -> str:
             return f"Plan for {tomorrow} saved with {len(tasks)} tasks."
     except Exception as e:
         return f"Error saving plan: {str(e)}"
+
+@tool
+async def get_habits(_: str = "") -> str:
+    """
+    Get the list of all tracked habits.
+    """
+    try:
+        async with async_session() as session:
+            habits = await habit_service.get_habits(session)
+            return str([h.name for h in habits])
+    except Exception as e:
+        return f"Error retrieving habits: {str(e)}"
+

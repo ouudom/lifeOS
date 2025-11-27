@@ -39,3 +39,8 @@ async def get_today_habits(db: AsyncSession) -> List[HabitEntry]:
     statement = select(HabitEntry).where(HabitEntry.date == today)
     result = await db.exec(statement)
     return result.all()
+
+async def get_habits(db: AsyncSession) -> List[Habit]:
+    statement = select(Habit)
+    result = await db.exec(statement)
+    return result.all()

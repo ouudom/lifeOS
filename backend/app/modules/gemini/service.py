@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, Tool
 from app.core.config import settings
 
 from .tools import (
-    save_habits, save_journal, get_context, save_tomorrow_plan
+    save_habits, save_journal, get_context, save_tomorrow_plan, get_habits
 )
 
 class GeminiService:
@@ -23,13 +23,13 @@ class GeminiService:
             )
 
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-pro",
             google_api_key=api_key,
             temperature=0.7,
         )
         
         self.tools = [
-            save_habits, save_journal, get_context, save_tomorrow_plan
+            save_habits, save_journal, get_context, save_tomorrow_plan, get_habits
         ]
         
         # Define the prompt template
@@ -116,8 +116,15 @@ class GeminiService:
             
             final_content = result["output"]
 
+            if isinstance(final_content, list):
+                parsed_parts = []
+                for part in final_content:
+                    if isinstance(part, dict) and "text" in part:
+                        parsed_parts.append(part["text"])
+                    elif isinstance(part, str):
+                        parsed_parts.append(part)
+                return "".join(parsed_parts)
 
-                
             return str(final_content)
 
         except Exception as e:
