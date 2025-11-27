@@ -2,6 +2,8 @@ import os
 from datetime import date
 
 from fastapi import HTTPException, status
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, ToolMessage
 
@@ -31,7 +33,23 @@ class GeminiService:
             save_habits, save_journal, get_context, save_tomorrow_plan
         ]
         
-        self.llm_with_tools = self.llm.bind_tools(self.tools)
+        # Define the prompt template
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", "{system_message}"),
+            ("human", "{input}"),
+            MessagesPlaceholder("agent_scratchpad"),
+        ])
+        
+        # Create the agent
+        self.agent = create_tool_calling_agent(self.llm, self.tools, self.prompt)
+        
+        # Create the executor
+        self.agent_executor = AgentExecutor(
+            agent=self.agent, 
+            tools=self.tools, 
+            verbose=True,
+            handle_parsing_errors=True
+        )
 
     def _load_knowledge(self) -> str:
         """Load content from specific knowledge files."""
@@ -59,6 +77,19 @@ class GeminiService:
             
         return "\n\n" + "\n".join(knowledge_content)
 
+    def _load_system_prompt(self) -> str:
+        """Load the base system prompt from SYSTEM_PROMPT.md."""
+        prompt_path = os.path.join(os.getcwd(), "knowledge", "SYSTEM_PROMPT.md")
+        if os.path.exists(prompt_path):
+            try:
+                with open(prompt_path, "r") as f:
+                    return f.read().strip()
+            except Exception as e:
+                print(f"Error reading SYSTEM_PROMPT.md: {e}")
+        
+        # Fallback if file doesn't exist
+        return "You are a helpful assistant."
+
     async def generate_content(self, prompt: str) -> str:
         """
         Process a message using the LangChain agent with tools.
@@ -68,19 +99,10 @@ class GeminiService:
             await chat_service.save_message(session, role="user", content=prompt)
 
         knowledge_context = self._load_knowledge()
+        base_prompt = self._load_system_prompt()
         
         system_prompt = (
-            "You are LifeOS — a disciplined, identity-driven personal operating agent.\n"
-            "Your behavior is governed by the knowledge files:\n"
-            "GOAL.md, DAILY_REVIEW_TEMPLATE.md, CORE_PRINCIPLES_PROTOCOL.md, IDENTITY.md.\n\n"
-            "Read these files. Do not restate them. Do not summarize them unless the user asks. "
-            "They define your identity, principles, constraints, and operating rules.\n\n"
-            "Your tasks:\n"
-            "- Guide daily review (habits + journal).\n"
-            "- Plan tomorrow based on context.\n"
-            "- Enforce identity-first behavior and eliminate overthinking, perfectionism, procrastination, and fear-driven avoidance.\n"
-            "- Use tools only when saving or retrieving structured data.\n"
-            "- Keep responses clear, actionable, and aligned with the user's long-term goals."
+            f"{base_prompt}\n\n"
             f"{knowledge_context}"
         )
 
@@ -90,27 +112,14 @@ class GeminiService:
         ]
         
         try:
-            # First call to LLM
-            response = await self.llm_with_tools.ainvoke(messages)
-            messages.append(response)
+            # Execute agent
+            result = await self.agent_executor.ainvoke({
+                "system_message": system_prompt,
+                "input": prompt
+            })
             
-            final_content = response.content
-            
-            # If the LLM wants to use tools
-            if response.tool_calls:
-                for tool_call in response.tool_calls:
-                    # Find the tool function
-                    selected_tool = next((t for t in self.tools if t.name == tool_call["name"]), None)
-                    if selected_tool:
-                        # Execute the tool
-                        tool_output = await selected_tool.invoke(tool_call["args"])
-                        # Add tool output to messages
-                        messages.append(ToolMessage(content=str(tool_output), tool_call_id=tool_call["id"]))
-                
-                # Second call to LLM to generate final response based on tool outputs
-                final_response = await self.llm_with_tools.ainvoke(messages)
-                final_content = final_response.content
-            
+            final_content = result["output"]
+
             # Save assistant response
             async with async_session() as session:
                 await chat_service.save_message(session, role="assistant", content=str(final_content))

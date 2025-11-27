@@ -5,9 +5,15 @@ from app.modules.chat.models import Message
 
 class ChatService:
     def __init__(self, session: AsyncSession):
-        from app.modules.gemini.service import GeminiService
         self.session = session
-        self.gemini_service = GeminiService()
+        self._gemini_service = None
+
+    @property
+    def gemini_service(self):
+        if not self._gemini_service:
+            from app.modules.gemini.service import GeminiService
+            self._gemini_service = GeminiService()
+        return self._gemini_service
 
     async def get_reply(self, message: str) -> str:
         """Generate a reply using the Gemini AI service and store the conversation."""
