@@ -304,9 +304,9 @@ export function Chat() {
             </div>
 
             {/* Input Form */}
-            <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <form onSubmit={handleSubmit} className="mx-auto max-w-3xl p-4">
-                    <div className="flex items-center gap-3 rounded-full border bg-background px-6 py-3 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                    <div className="flex items-center gap-3 rounded-full border bg-background px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                         <input
                             ref={textareaRef as any}
                             value={input}
